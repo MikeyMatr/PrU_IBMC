@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Личный кабинет жителя</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 20px auto; line-height: 1.6; }
+        .card { border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 8px; }
+        .hidden { display: none; }
+        input, textarea, select { width: 100%; margin: 10px 0; padding: 8px; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px; }
+        #logoutBtn { background: #dc3545; }
+    </style>
+</head>
+<body>
+
+    <!-- ФОРМА ВХОДА -->
+    <div id="loginSection">
+        <h2>Вход в систему ЖЭУ</h2>
+        <input type="text" id="username" placeholder="Логин">
+        <input type="password" id="password" placeholder="Пароль">
+        <button onclick="login()">Войти</button>
+    </div>
+
+    <!-- ЛИЧНЫЙ КАБИНЕТ -->
+    <div id="mainSection" class="hidden">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2>Кабинет жителя</h2>
+            <button id="logoutBtn" onclick="logout()">Выйти</button>
+        </div>
+
+        <h3>Оставить заявку</h3>
+        <div class="card">
+            <select id="pleaCategory">
+                <option value="plumber">Сантехник</option>
+                <option value="electrician">Электрик</option>
+            </select>
+            <textarea id="pleaDesc" placeholder="Опишите проблему..."></textarea>
+            <button onclick="createPlea()">Отправить заявку</button>
+        </div>
+
+        <h3>Новости дома</h3>
+        <div id="newsList">Загрузка новостей...</div>
+    </div>
+
+    <script>
+        const API_URL = 'http://127.0.0.1:8000/api/';
+        let accessToken = localStorage.getItem('access');
+
+        // Если токен есть, показываем кабинет
+        if (accessToken) showDashboard();
+
+        async function login() {
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+
+            const response = await fetch(API_URL + 'auth/login/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: user, password: pass })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                localStorage.setItem('access', data.access);
+                accessToken = data.access;
+                showDashboard();
+            } else {
+                alert('Ошибка входа!');
+            }
+        }
+
+        function showDashboard() {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('mainSection').classList.remove('hidden');
+            fetchNews();
+        }
+
+        function logout() {
+            localStorage.clear();
+            location.reload();
+        }
+
+        async function fetchNews() {
+            const response = await fetch(API_URL + 'news/', {
+                headers: { 'Authorization': 'Bearer ' + accessToken }
+            });
+            const news = await response.json();
+            let html = '';
+            news.forEach(item => {
+                html += `<div class="card"><h4>${item.title}</h4><p>${item.content}</p></div>`;
+            });
+            document.getElementById('newsList').innerHTML = html || 'Новостей пока нет';
+        }
+
+        async function createPlea() {
+            const category = document.getElementById('pleaCategory').value;
+            const description = document.getElementById('pleaDesc').value;
+
+            const response = await fetch(API_URL + 'pleas/', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + accessToken 
+                },
+                body: JSON.stringify({ category, description })
+            });
+
+            if (response.ok) {
+                alert('Заявка создана!');
+                document.getElementById('pleaDesc').value = '';
+            }
+        }
+    </script>
+</body>
+</html>

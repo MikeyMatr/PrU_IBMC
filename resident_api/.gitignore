@@ -1,0 +1,41 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.env
+
+# Database (SQLite)
+# Мы игнорируем локальную базу данных, так как у каждого разработчика она своя
+*.sqlite3
+db.sqlite3
+
+# Django specific
+# Игнорируем папку со статикой, которую собирает collectstatic (если будете использовать)
+static_root/
+# Игнорируем загруженные пользователями файлы (аватарки, фото поломок и т.д.)
+media/
+
+# Logs
+*.log
+local_settings.py
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+desktop.ini
+
+# IDEs and Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+.project
+.pydevproject
+.settings/
