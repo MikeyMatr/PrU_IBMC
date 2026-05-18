@@ -15,11 +15,23 @@
 <body>
 
     <!-- ФОРМА ВХОДА -->
+     <!-- Измененный блок входа и регистрации -->
     <div id="loginSection">
-        <h2>Вход в систему ЖЭУ</h2>
+        <div id="authTitle"><h2>Вход в систему ЖЭУ</h2></div>
+        
         <input type="text" id="username" placeholder="Логин">
+        <input type="email" id="email" class="hidden" placeholder="Email (для регистрации)">
         <input type="password" id="password" placeholder="Пароль">
-        <button onclick="login()">Войти</button>
+        
+        <div id="loginActions">
+            <button onclick="login()">Войти</button>
+            <p>Нет аккаунта? <a href="#" onclick="toggleAuth(true)">Зарегистрироваться</a></p>
+        </div>
+        
+        <div id="registerActions" class="hidden">
+            <button onclick="register()">Создать аккаунт</button>
+            <p>Уже есть аккаунт? <a href="#" onclick="toggleAuth(false)">Войти</a></p>
+        </div>
     </div>
 
     <!-- ЛИЧНЫЙ КАБИНЕТ -->
@@ -46,7 +58,36 @@
     <script>
         const API_URL = 'http://127.0.0.1:8000/api/';
         let accessToken = localStorage.getItem('access');
+    
+        let isRegisterMode = false;
 
+        function toggleAuth(isReg) {
+            isRegisterMode = isReg;
+            document.getElementById('authTitle').innerHTML = isReg ? '<h2>Регистрация жителя</h2>' : '<h2>Вход в систему ЖЭУ</h2>';
+            document.getElementById('email').classList.toggle('hidden', !isReg);
+            document.getElementById('loginActions').classList.toggle('hidden', isReg);
+            document.getElementById('registerActions').classList.toggle('hidden', !isReg);
+        }
+
+        async function register() {
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+            const email = document.getElementById('email').value;
+
+            const response = await fetch(API_URL + 'auth/register/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: user, password: pass, email: email })
+            });
+
+            if (response.ok) {
+                alert('Регистрация успешна! Теперь войдите.');
+                toggleAuth(false);
+            } else {
+                const data = await response.json();
+                alert('Ошибка: ' + JSON.stringify(data));
+            }
+        }
         // Если токен есть, показываем кабинет
         if (accessToken) showDashboard();
 

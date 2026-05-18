@@ -1,7 +1,9 @@
 from django.shortcuts import render
-from rest_framework import viewsets, permissions
+from django.contrib.auth.models import User
+from rest_framework import viewsets, permissions, generics
+from rest_framework.permissions import AllowAny
 from .models import News, Plea
-from .serializers import NewsSerializer, PleaSerializer
+from .serializers import NewsSerializer, PleaSerializer, RegisterSerializer
 
 class NewsViewSet(viewsets.ReadOnlyModelViewSet):
     """
@@ -28,3 +30,9 @@ class PleaViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         # При создании привязываем заявку к текущему пользователю
         serializer.save(resident=self.request.user)
+
+
+class RegisterView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    permission_classes = [AllowAny] # Разрешаем всем
+    serializer_class = RegisterSerializer

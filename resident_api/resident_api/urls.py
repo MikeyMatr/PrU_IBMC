@@ -21,7 +21,7 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
-from core.views import NewsViewSet, PleaViewSet
+from core.views import NewsViewSet, PleaViewSet, RegisterView
 
 router = DefaultRouter()
 router.register(r'news', NewsViewSet, basename='news')
@@ -33,6 +33,7 @@ urlpatterns = [
     # Эндпоинты для авторизации (Core сервис в вашей схеме)
     path('api/auth/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/auth/register/', RegisterView.as_view(), name='auth_register'),
     
     # Эндпоинты для Новостей и Заявок
     path('api/', include(router.urls)),
