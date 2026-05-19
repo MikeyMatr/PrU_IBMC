@@ -40,6 +40,8 @@
             <h2>Кабинет жителя</h2>
             <button id="logoutBtn" onclick="logout()">Выйти</button>
         </div>
+            <button id="adminPanelBtn" class="hidden" onclick="window.location.href='admin_panel.html'" style="background: #28a745; margin-right: 10px;">Панель Диспетчера</button>
+            <button id="logoutBtn" onclick="logout()">Выйти</button>
 
         <h3>Оставить заявку</h3>
         <div class="card">
@@ -104,6 +106,7 @@
             if (response.ok) {
                 const data = await response.json();
                 localStorage.setItem('access', data.access);
+                localStorage.setItem('is_staff', data.is_staff); // Сохраняем статус админа
                 accessToken = data.access;
                 showDashboard();
             } else {
@@ -114,7 +117,14 @@
         function showDashboard() {
             document.getElementById('loginSection').classList.add('hidden');
             document.getElementById('mainSection').classList.remove('hidden');
+            
+            // Если пользователь - админ, показываем кнопку перехода в админку
+            if (localStorage.getItem('is_staff') === 'true') {
+                document.getElementById('adminPanelBtn').classList.remove('hidden');
+            }
+            
             fetchNews();
+            fetchPleas();
         }
 
         function logout() {

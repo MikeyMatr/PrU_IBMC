@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import News, Plea
 from django.contrib.auth.models import User
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 class NewsSerializer(serializers.ModelSerializer):
     class Meta:
@@ -32,3 +33,10 @@ class RegisterSerializer(serializers.ModelSerializer):
             email=validated_data.get('email', '')
         )
         return user
+    
+class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        # Добавляем инфо о статусе админа в ответ
+        data['is_staff'] = self.user.is_staff
+        return data

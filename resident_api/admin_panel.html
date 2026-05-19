@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Панель управления ЖЭУ</title>
+    <style>
+        body { font-family: sans-serif; max-width: 1000px; margin: 20px auto; background: #f4f7f6; }
+        .plea-card { background: white; padding: 15px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .info { flex-grow: 1; }
+        .status-badge { padding: 5px 10px; border-radius: 4px; font-size: 0.8em; font-weight: bold; }
+        .new { background: #ffeeba; color: #856404; }
+        .in_progress { background: #b8daff; color: #004085; }
+        .completed { background: #c3e6cb; color: #155724; }
+        select { padding: 5px; margin-left: 10px; }
+        button { cursor: pointer; padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+        <h3>Опубликовать новость</h3>
+        <input type="text" id="newsTitle" placeholder="Заголовок новости" style="width: 98%; padding: 10px; margin-bottom: 10px;">
+        <textarea id="newsContent" placeholder="Текст новости..." style="width: 98%; padding: 10px; height: 80px; margin-bottom: 10px;"></textarea>
+        <button onclick="createNews()" style="background: #28a745; width: 100%;">Опубликовать для жителей</button>
+    </div>
+    <h2>Все заявки жителей (Диспетчер)</h2>
+    <div id="allPleasList">Загрузка...</div>
+
+    <script>
+        const API_URL = 'http://127.0.0.1:8000/api/';
+        const accessToken = localStorage.getItem('access');
+
+        if (!accessToken) {
+            alert("Войдите как администратор!");
+            window.location.href = 'index.html';
+        }
+
+        async function fetchAllPleas() {
+            const response = await fetch(API_URL + 'pleas/', {
+                headers: { 'Authorization': 'Bearer ' + accessToken }
+            });
+            const pleas = await response.json();
+            
+            let html = '';
+            pleas.forEach(p => {
+                html += `
+                    <div class="plea-card">
+                        <div class="info">
+                            <span class="status-badge ${p.status}">${p.status_display}</span>
+                            <strong>#${p.id} - ${p.category === 'plumber' ? 'Сантехник' : 'Электрик'}</strong>
+                            <p style="margin: 5px 0;">От: <b>${p.resident}</b></p>
+                            <p style="margin: 0; color: #555;">${p.description}</p>
+                        </div>
+                        <div class="actions">
+                            <select onchange="updateStatus(${p.id}, this.value)">
+                                <option value="new" ${p.status === 'new' ? 'selected' : ''}>Новая</option>
+                                <option value="in_progress" ${p.status === 'in_progress' ? 'selected' : ''}>В работу</option>
+                                <option value="completed" ${p.status === 'completed' ? 'selected' : ''}>Завершить</option>
+                            </select>
+                        </div>
+                    </div>
+                `;
+            });
+            document.getElementById('allPleasList').innerHTML = html || 'Заявок нет';
+        }
+
+        async function createNews() {
+            const title = document.getElementById('newsTitle').value;
+            const content = document.getElementById('newsContent').value;
+
+            if (!title || !content) {
+                alert("Заполните заголовок и текст!");
+                return;
+            }
+
+            const response = await fetch(API_URL + 'news/', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + accessToken 
+                },
+                body: JSON.stringify({ title, content })
+            });
+
+            if (response.ok) {
+                alert('Новость опубликована!');
+                document.getElementById('newsTitle').value = '';
+                document.getElementById('newsContent').value = '';
+                // Сигналы в Django автоматически отправят Push, когда новость сохранится в БД
+            } else {
+                const data = await response.json();
+                alert('Ошибка: ' + JSON.stringify(data));
+            }
+        }
+
+        async function updateStatus(pleaId, newStatus) {
+            const response = await fetch(`${API_URL}pleas/${pleaId}/`, {
+                method: 'PATCH',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + accessToken 
+                },
+                body: JSON.stringify({ status: newStatus })
+            });
+
+            if (response.ok) {
+                console.log('Статус обновлен');
+                fetchAllPleas(); // Перезагружаем список
+            } else {
+                alert('Ошибка при обновлении статуса');
+            }
+        }
+
+        fetchAllPleas();
+    </script>
+</body>
+</html>
