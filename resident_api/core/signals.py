@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth.models import User
-from .models import News, Plea
+from .models import News, Plea, Profile
 from .services import send_push_notification
 
 @receiver(post_save, sender=News)
@@ -25,3 +25,12 @@ def notify_resident_plea_status(sender, instance, created, **kwargs):
             "Статус вашей заявки изменен", 
             f"Заявка #{instance.id} теперь в статусе: {instance.get_status_display()}"
         )
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    instance.profile.save()

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import News, Plea
+from .models import News, Plea, Profile
 
 @admin.register(News)
 class NewsAdmin(admin.ModelAdmin):
@@ -11,3 +11,8 @@ class PleaAdmin(admin.ModelAdmin):
     list_filter = ('status', 'category')
     # Разрешаем менять статус прямо из списка
     list_editable = ('status',) 
+
+@admin.register(Profile)
+class ProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'role')
+    list_filter = ('role',)

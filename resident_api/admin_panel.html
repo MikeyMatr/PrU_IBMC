@@ -28,40 +28,52 @@
     <script>
         const API_URL = 'http://127.0.0.1:8000/api/';
         const accessToken = localStorage.getItem('access');
+        const role = localStorage.getItem('role');
 
-        if (!accessToken) {
-            alert("Войдите как администратор!");
-            window.location.href = 'index.html';
+        if (!accessToken || role === 'resident') {
+                alert("Доступ запрещен!");
+                window.location.href = 'index.html';
         }
 
         async function fetchAllPleas() {
-            const response = await fetch(API_URL + 'pleas/', {
-                headers: { 'Authorization': 'Bearer ' + accessToken }
-            });
-            const pleas = await response.json();
-            
-            let html = '';
-            pleas.forEach(p => {
-                html += `
-                    <div class="plea-card">
-                        <div class="info">
-                            <span class="status-badge ${p.status}">${p.status_display}</span>
-                            <strong>#${p.id} - ${p.category === 'plumber' ? 'Сантехник' : 'Электрик'}</strong>
-                            <p style="margin: 5px 0;">От: <b>${p.resident}</b></p>
-                            <p style="margin: 0; color: #555;">${p.description}</p>
-                        </div>
-                        <div class="actions">
-                            <select onchange="updateStatus(${p.id}, this.value)">
-                                <option value="new" ${p.status === 'new' ? 'selected' : ''}>Новая</option>
-                                <option value="in_progress" ${p.status === 'in_progress' ? 'selected' : ''}>В работу</option>
-                                <option value="completed" ${p.status === 'completed' ? 'selected' : ''}>Завершить</option>
-                            </select>
-                        </div>
-                    </div>
-                `;
-            });
-            document.getElementById('allPleasList').innerHTML = html || 'Заявок нет';
+            console.log("Запрашиваю список заявок для роли:", role);
+            try {
+                const response = await fetch(API_URL + 'pleas/', {
+                    headers: { 'Authorization': 'Bearer ' + accessToken }
+                });
+                
+                if (!response.ok) throw new Error("Ошибка сервера");
+                
+                const pleas = await response.json();
+                console.log("Получены заявки:", pleas); // Проверим в консоли F12
+                
+                renderPleas(pleas);
+            } catch (err) {
+                document.getElementById('allPleasList').innerHTML = "Ошибка загрузки заявок";
+                console.error(err);
+            }
         }
+        function renderPleas(pleas) {
+                let html = '';
+                pleas.forEach(p => {
+                    html += `
+                        <div class="plea-card">
+                            <div class="info">
+                                <span class="status-badge ${p.status}">${p.status_display}</span>
+                                <strong>#${p.id} - ${p.category === 'plumber' ? 'Сантехник' : 'Электрик'}</strong>
+                                <p>От: ${p.resident} | Описание: ${p.description}</p>
+                            </div>
+                            <div class="actions">
+                                <select onchange="updateStatus(${p.id}, this.value)">
+                                    <option value="new" ${p.status === 'new' ? 'selected' : ''}>Новая</option>
+                                    <option value="in_progress" ${p.status === 'in_progress' ? 'selected' : ''}>В работу</option>
+                                    <option value="completed" ${p.status === 'completed' ? 'selected' : ''}>Завершена</option>
+                                </select>
+                            </div>
+                        </div>`;
+                });
+                document.getElementById('allPleasList').innerHTML = html || 'Заявок для вашей специализации пока нет';
+            }
 
         async function createNews() {
             const title = document.getElementById('newsTitle').value;

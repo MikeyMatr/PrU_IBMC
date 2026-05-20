@@ -34,9 +34,17 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
         return user
     
+# class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+#     def validate(self, attrs):
+#         data = super().validate(attrs)
+#         # Добавляем инфо о статусе админа в ответ
+#         data['is_staff'] = self.user.is_staff
+#         return data
+
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         data = super().validate(attrs)
-        # Добавляем инфо о статусе админа в ответ
+        # Убедитесь, что эта строка есть!
+        data['role'] = self.user.profile.role 
         data['is_staff'] = self.user.is_staff
         return data

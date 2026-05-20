@@ -107,6 +107,7 @@
                 const data = await response.json();
                 localStorage.setItem('access', data.access);
                 localStorage.setItem('is_staff', data.is_staff); // Сохраняем статус админа
+                localStorage.setItem('role', data.role); 
                 accessToken = data.access;
                 showDashboard();
             } else {
@@ -118,14 +119,34 @@
             document.getElementById('loginSection').classList.add('hidden');
             document.getElementById('mainSection').classList.remove('hidden');
             
-            // Если пользователь - админ, показываем кнопку перехода в админку
-            if (localStorage.getItem('is_staff') === 'true') {
-                document.getElementById('adminPanelBtn').classList.remove('hidden');
+            const role = localStorage.getItem('role');
+            const isStaff = localStorage.getItem('is_staff') === 'true';
+
+            console.log("Текущая роль:", role); // Это появится в консоли F12
+
+            // Если это НЕ житель (т.е. мастер или админ), показываем кнопку
+            if (isStaff || (role && role !== 'resident')) {
+                console.log("Условия соблюдены, показываю кнопку");
+                const adminBtn = document.getElementById('adminPanelBtn');
+                adminBtn.classList.remove('hidden');
+                adminBtn.innerText = (role === 'plumber' || role === 'electrician') ? 'Панель мастера' : 'Панель диспетчера';
             }
             
             fetchNews();
             fetchPleas();
         }
+        // function showDashboard() {
+        //     document.getElementById('loginSection').classList.add('hidden');
+        //     document.getElementById('mainSection').classList.remove('hidden');
+            
+        //     // Если пользователь - админ, показываем кнопку перехода в админку
+        //     if (localStorage.getItem('is_staff') === 'true') {
+        //         document.getElementById('adminPanelBtn').classList.remove('hidden');
+        //     }
+            
+        //     fetchNews();
+        //     fetchPleas();
+        // }
 
         function logout() {
             localStorage.clear();
