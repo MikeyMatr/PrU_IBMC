@@ -36,20 +36,30 @@
         }
 
         async function fetchAllPleas() {
-            console.log("Запрашиваю список заявок для роли:", role);
             try {
                 const response = await fetch(API_URL + 'pleas/', {
                     headers: { 'Authorization': 'Bearer ' + accessToken }
                 });
-                
-                if (!response.ok) throw new Error("Ошибка сервера");
-                
+
+                // Если сервер ответил ошибкой (404, 500 и т.д.)
+                if (!response.ok) {
+                    const rawText = await response.text(); // Читаем как текст, а не JSON
+                    console.error("Сырой ответ сервера:", rawText);
+                    
+                    // Если в ответе есть слово "not found", значит неверный URL
+                    if (response.status === 404) {
+                        throw new Error("Адрес /api/pleas/ не найден (404). Проверьте urls.py и наличие слэша в конце.");
+                    }
+                    throw new Error(`Ошибка сервера ${response.status}. Проверьте терминал Django.`);
+                }
+
                 const pleas = await response.json();
-                console.log("Получены заявки:", pleas); // Проверим в консоли F12
-                
                 renderPleas(pleas);
             } catch (err) {
-                document.getElementById('allPleasList').innerHTML = "Ошибка загрузки заявок";
+                document.getElementById('allPleasList').innerHTML = 
+                    `<div style="color:red; padding:20px; border:1px solid red; background: #fff5f5;">
+                        <b>Ошибка:</b> ${err.message}
+                    </div>`;
                 console.error(err);
             }
         }

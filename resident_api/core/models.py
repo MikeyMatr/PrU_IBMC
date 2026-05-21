@@ -44,6 +44,15 @@ class Plea(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    executor = models.ForeignKey(
+        User, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='tasks',
+        verbose_name="Исполнитель"
+    )
+
     class Meta:
         verbose_name = "Заявка"
         verbose_name_plural = "Заявки"
