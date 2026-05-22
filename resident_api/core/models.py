@@ -53,6 +53,9 @@ class Plea(models.Model):
         verbose_name="Исполнитель"
     )
 
+    address = models.CharField(max_length=255, verbose_name="Адрес (Улица, дом)", default="")
+    apartment = models.CharField(max_length=10, verbose_name="Квартира", default="")
+
     class Meta:
         verbose_name = "Заявка"
         verbose_name_plural = "Заявки"

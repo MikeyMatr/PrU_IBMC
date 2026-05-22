@@ -63,27 +63,44 @@
                 console.error(err);
             }
         }
+
         function renderPleas(pleas) {
-                let html = '';
-                pleas.forEach(p => {
-                    html += `
-                        <div class="plea-card">
-                            <div class="info">
-                                <span class="status-badge ${p.status}">${p.status_display}</span>
-                                <strong>#${p.id} - ${p.category === 'plumber' ? 'Сантехник' : 'Электрик'}</strong>
-                                <p>От: ${p.resident} | Описание: ${p.description}</p>
+            let html = '';
+            pleas.forEach(p => {
+                // Определяем текст категории для отображения
+                const categoryName = p.category === 'plumber' ? 'Сантехник' : 'Электрик';
+                
+                html += `
+                    <div class="plea-card">
+                        <div class="info">
+                            <!-- Бейдж со статусом (сохраняем ваши стили) -->
+                            <span class="status-badge ${p.status}">${p.status_display}</span>
+                            
+                            <strong>#${p.id} — ${categoryName}</strong>
+                            
+                            <div style="margin-top: 10px; font-size: 0.95em;">
+                                <!-- Добавляем информацию о месте -->
+                                <p style="margin: 3px 0;">📍 <b>Адрес:</b> ${p.address || 'не указан'}</p>
+                                <p style="margin: 3px 0;">🏢 <b>Квартира:</b> ${p.apartment || '-'}</p>
+                                <hr style="border: 0; border-top: 1px solid #eee; margin: 10px 0;">
+                                <p style="margin: 3px 0;">👤 <b>Житель:</b> ${p.resident}</p>
+                                <p style="margin: 5px 0; color: #333;">📝 <b>Проблема:</b> ${p.description}</p>
                             </div>
-                            <div class="actions">
-                                <select onchange="updateStatus(${p.id}, this.value)">
-                                    <option value="new" ${p.status === 'new' ? 'selected' : ''}>Новая</option>
-                                    <option value="in_progress" ${p.status === 'in_progress' ? 'selected' : ''}>В работу</option>
-                                    <option value="completed" ${p.status === 'completed' ? 'selected' : ''}>Завершена</option>
-                                </select>
-                            </div>
-                        </div>`;
-                });
-                document.getElementById('allPleasList').innerHTML = html || 'Заявок для вашей специализации пока нет';
-            }
+                        </div>
+
+                        <div class="actions">
+                            <label style="font-size: 0.8em; color: #666;">Сменить статус:</label><br>
+                            <select onchange="updateStatus(${p.id}, this.value)">
+                                <option value="new" ${p.status === 'new' ? 'selected' : ''}>Новая</option>
+                                <option value="in_progress" ${p.status === 'in_progress' ? 'selected' : ''}>В работу</option>
+                                <option value="completed" ${p.status === 'completed' ? 'selected' : ''}>Завершена</option>
+                            </select>
+                        </div>
+                    </div>`;
+            });
+            
+            document.getElementById('allPleasList').innerHTML = html || '<p style="text-align:center; padding:20px;">Заявок для вашей специализации пока нет</p>';
+        }
 
         async function createNews() {
             const title = document.getElementById('newsTitle').value;

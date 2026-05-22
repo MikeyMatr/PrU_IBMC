@@ -49,6 +49,8 @@
                 <option value="plumber">Сантехник</option>
                 <option value="electrician">Электрик</option>
             </select>
+            <input type="text" id="pleaAddress" placeholder="Улица, номер дома">
+            <input type="text" id="pleaApartment" placeholder="Квартира">
             <textarea id="pleaDesc" placeholder="Опишите проблему..."></textarea>
             <button onclick="createPlea()">Отправить заявку</button>
         </div>
@@ -135,18 +137,7 @@
             fetchNews();
             fetchPleas();
         }
-        // function showDashboard() {
-        //     document.getElementById('loginSection').classList.add('hidden');
-        //     document.getElementById('mainSection').classList.remove('hidden');
-            
-        //     // Если пользователь - админ, показываем кнопку перехода в админку
-        //     if (localStorage.getItem('is_staff') === 'true') {
-        //         document.getElementById('adminPanelBtn').classList.remove('hidden');
-        //     }
-            
-        //     fetchNews();
-        //     fetchPleas();
-        // }
+
 
         function logout() {
             localStorage.clear();
@@ -165,9 +156,18 @@
             document.getElementById('newsList').innerHTML = html || 'Новостей пока нет';
         }
 
+
+
         async function createPlea() {
             const category = document.getElementById('pleaCategory').value;
+            const address = document.getElementById('pleaAddress').value;
+            const apartment = document.getElementById('pleaApartment').value;
             const description = document.getElementById('pleaDesc').value;
+
+            if (!address || !description) {
+                alert("Пожалуйста, укажите адрес и описание проблемы!");
+                return;
+            }
 
             const response = await fetch(API_URL + 'pleas/', {
                 method: 'POST',
@@ -175,12 +175,15 @@
                     'Content-Type': 'application/json',
                     'Authorization': 'Bearer ' + accessToken 
                 },
-                body: JSON.stringify({ category, description })
+                body: JSON.stringify({ category, address, apartment, description })
             });
 
             if (response.ok) {
                 alert('Заявка создана!');
+                document.getElementById('pleaAddress').value = '';
+                document.getElementById('pleaApartment').value = '';
                 document.getElementById('pleaDesc').value = '';
+                fetchPleas();
             }
         }
     </script>

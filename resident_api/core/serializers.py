@@ -15,7 +15,7 @@ class PleaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Plea
-        fields = ['id', 'resident', 'category', 'description', 'status', 'status_display', 'created_at']
+        fields = ['id', 'resident', 'category','address', 'apartment', 'description', 'status', 'status_display', 'created_at']
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -33,13 +33,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             email=validated_data.get('email', '')
         )
         return user
-    
-# class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
-#     def validate(self, attrs):
-#         data = super().validate(attrs)
-#         # Добавляем инфо о статусе админа в ответ
-#         data['is_staff'] = self.user.is_staff
-#         return data
+
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
