@@ -3,6 +3,8 @@ from rest_framework import viewsets, permissions, generics, status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.decorators import action
+from django.utils import timezone
 
 from .models import News, Plea
 from .serializers import (
@@ -65,3 +67,29 @@ class PleaViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(resident=self.request.user)
+
+    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    def stats(self, request):
+        user = request.user
+        role = getattr(user.profile, 'role', 'resident')
+        today = timezone.now().date()
+
+        # Базовый запрос (все заявки)
+        queryset = Plea.objects.all()
+
+        # Если это мастер, фильтруем статистику только по его категории
+        if role == 'plumber':
+            queryset = queryset.filter(category='plumber')
+        elif role == 'electrician':
+            queryset = queryset.filter(category='electrician')
+        elif not user.is_staff and role != 'manager':
+            return Response({"error": "Нет доступа"}, status=403)
+
+        # Считаем данные на основе отфильтрованного queryset
+        data = {
+            "new": queryset.filter(status='new').count(),
+            "in_progress": queryset.filter(status='in_progress').count(),
+            "completed_today": queryset.filter(status='completed', updated_at__date=today).count(),
+            "total": queryset.count(),
+        }
+        return Response(data)
