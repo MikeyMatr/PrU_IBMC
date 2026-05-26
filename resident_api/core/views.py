@@ -66,7 +66,35 @@ class PleaViewSet(viewsets.ModelViewSet):
         return Plea.objects.filter(resident=user).order_by('-created_at')
 
     def perform_create(self, serializer):
-        serializer.save(resident=self.request.user)
+        user = self.request.user
+        
+        # 1. Получаем то, что пришло из формы на сайте
+        raw_address = self.request.data.get('address', '')
+        raw_apartment = self.request.data.get('apartment', '')
+
+        # 2. Получаем то, что сохранено в профиле
+        try:
+            profile_address = user.profile.address
+            profile_apartment = user.profile.apartment
+        except Exception:
+            profile_address = ""
+            profile_apartment = ""
+
+        # 3. ЛОГИКА ВЫБОРА: Если в форме пусто — берем из профиля
+        final_address = raw_address.strip() if raw_address and raw_address.strip() else profile_address
+        final_apartment = raw_apartment.strip() if raw_apartment and raw_apartment.strip() else profile_apartment
+
+        # ТЕРМИНАЛ: Печатаем для проверки
+        print(f"--- АВТОЗАПОЛНЕНИЕ ДЛЯ {user.username} ---")
+        print(f"Из формы: '{raw_address}', Из профиля: '{profile_address}'")
+        print(f"ИТОГ: '{final_address}'")
+
+        # 4. Сохраняем с финальными данными
+        serializer.save(
+            resident=user,
+            address=final_address,
+            apartment=final_apartment
+        )
 
     @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
     def stats(self, request):

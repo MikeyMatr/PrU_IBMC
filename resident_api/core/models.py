@@ -23,8 +23,12 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='resident')
 
+    address = models.CharField(max_length=255, blank=True, verbose_name="Адрес по умолчанию")
+    apartment = models.CharField(max_length=10, blank=True, verbose_name="Квартира")
+
     def __str__(self):
         return f"{self.user.username} - {self.get_role_display()}"
+    
 
 class Plea(models.Model):
     TYPE_CHOICES = [
@@ -53,8 +57,8 @@ class Plea(models.Model):
         verbose_name="Исполнитель"
     )
 
-    address = models.CharField(max_length=255, verbose_name="Адрес (Улица, дом)", default="")
-    apartment = models.CharField(max_length=10, verbose_name="Квартира", default="")
+    address = models.CharField(max_length=255, verbose_name="Адрес", blank=True, default="")
+    apartment = models.CharField(max_length=10, verbose_name="Квартира", blank=True, default="")
 
     class Meta:
         verbose_name = "Заявка"
