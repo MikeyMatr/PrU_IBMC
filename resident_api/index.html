@@ -10,6 +10,25 @@
         input, textarea, select { width: 100%; margin: 10px 0; padding: 8px; }
         button { background: #007bff; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px; }
         #logoutBtn { background: #dc3545; }
+        .plea-item { 
+        background: #f9f9f9; 
+        padding: 15px; 
+        margin-bottom: 10px; 
+        border-radius: 6px; 
+        border-left: 5px solid #ccc; 
+        }
+        .status-tag { 
+            display: inline-block; 
+            padding: 2px 8px; 
+            border-radius: 4px; 
+            font-size: 0.85em; 
+            font-weight: bold; 
+            text-transform: uppercase;
+        }
+        /* Цвета для разных статусов */
+        .status-new { background: #ffeeba; color: #856404; }       /* Желтый */
+        .status-in_progress { background: #b8daff; color: #004085; } /* Синий */
+        .status-completed { background: #c3e6cb; color: #155724; }   /* Зеленый */
     </style>
 </head>
 <body>
@@ -58,6 +77,10 @@
             <button onclick="createPlea()">Отправить заявку</button>
         </div>
 
+        <hr>
+        <h3>Мои активные заявки</h3>
+        <div id="pleasList">Загрузка ваших заявок...</div>
+
         <h3>Новости дома</h3>
         <div id="newsList">Загрузка новостей...</div>
     </div>
@@ -78,26 +101,7 @@
             document.getElementById('registerActions').classList.toggle('hidden', !isReg);
         }
 
-        // async function register() {
-        //     const user = document.getElementById('username').value;
-        //     const pass = document.getElementById('password').value;
-        //     const email = document.getElementById('email').value;
 
-        //     const response = await fetch(API_URL + 'auth/register/', {
-        //         method: 'POST',
-        //         headers: { 'Content-Type': 'application/json' },
-        //         body: JSON.stringify({ username: user, password: pass, email: email })
-        //     });
-
-        //     if (response.ok) {
-        //         alert('Регистрация успешна! Теперь войдите.');
-        //         toggleAuth(false);
-        //     } else {
-        //         const data = await response.json();
-        //         alert('Ошибка: ' + JSON.stringify(data));
-        //     }
-        // }
-        // Если токен есть, показываем кабинет
         async function register() {
             const user = document.getElementById('username').value;
             const pass = document.getElementById('password').value;
@@ -170,6 +174,48 @@
             fetchNews();
             fetchPleas();
         }
+        async function fetchPleas() {
+            try {
+                const response = await fetch(API_URL + 'pleas/', {
+                    headers: { 'Authorization': 'Bearer ' + accessToken }
+                });
+                
+                if (!response.ok) throw new Error("Ошибка загрузки");
+                
+                const pleas = await response.json();
+                let html = '';
+                
+                pleas.forEach(p => {
+                    // Маппинг категорий на русский
+                    const categoryRu = p.category === 'plumber' ? 'Сантехник' : 'Электрик';
+                    
+                    html += `
+                        <div class="plea-item" style="border-left-color: ${getStatusColor(p.status)}">
+                            <div style="display: flex; justify-content: space-between;">
+                                <strong>${categoryRu} #${p.id}</strong>
+                                <span class="status-tag status-${p.status}">${p.status_display}</span>
+                            </div>
+                            <p style="margin: 8px 0; color: #444;">${p.description}</p>
+                            <small style="color: #888;">📍 ${p.address}, кв. ${p.apartment} | 📅 ${new Date(p.created_at).toLocaleDateString()}</small>
+                        </div>
+                    `;
+                });
+                
+                document.getElementById('pleasList').innerHTML = html || '<p>У вас пока нет созданных заявок.</p>';
+                
+            } catch (err) {
+                document.getElementById('pleasList').innerHTML = "Не удалось загрузить список заявок.";
+            }
+        }
+
+        // Вспомогательная функция для цвета границы
+        function getStatusColor(status) {
+            if (status === 'new') return '#ffc107';
+            if (status === 'in_progress') return '#007bff';
+            if (status === 'completed') return '#28a745';
+            return '#ccc';
+        }
+
 
 
         function logout() {
